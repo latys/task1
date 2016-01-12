@@ -4,6 +4,11 @@
 
 CBmp::CBmp(void)
 {
+	fWidthHeightRate=1.0;
+	m_fXPositionInDC=0;
+	m_fYPositionInDC=0;
+	m_rgbQuad=NULL;
+	m_bmpData=NULL;
 }
 /*********************************************************
 ** 函数名:
@@ -27,6 +32,9 @@ CBmp::CBmp(void)
 
 CBmp::CBmp(int x, int y, int n)
 {
+	fWidthHeightRate=1.0;
+	m_fXPositionInDC=0;
+	m_fYPositionInDC=0;
 	
 	if(n==8)
 	{
@@ -139,8 +147,7 @@ bool CBmp::IsNull()
 }
 void CBmp::ReleaseBmp()
 {
-	memset(&(this->m_bmpFileHeader),0,sizeof(this->m_bmpFileHeader));
-	memset(&(this->m_bmpInfoHeader),0,sizeof(this->m_bmpInfoHeader));
+	
 	if (this->m_bmpInfoHeader.biBitCount==8)
 	{
 		delete [] this->m_rgbQuad;
@@ -150,6 +157,9 @@ void CBmp::ReleaseBmp()
 	{
 		delete [] this->m_bmpData;
 	}
+	// memset 函数放前面导致图像信息头被清空，上述判断不成立，造成内存泄露
+	memset(&(this->m_bmpFileHeader),0,sizeof(this->m_bmpFileHeader));
+	memset(&(this->m_bmpInfoHeader),0,sizeof(this->m_bmpInfoHeader));
 	
 }
 

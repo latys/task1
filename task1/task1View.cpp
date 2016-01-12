@@ -35,29 +35,32 @@ BEGIN_MESSAGE_MAP(Ctask1View, CView)
 	ON_WM_LBUTTONUP()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_ERASEBKGND()
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 // Ctask1View 构造/析构
-CBmp g_cbmp;
-float g_fZScaling=1;         //记录鼠标滚轮
-CPoint g_ptMousePoint;       //记录鼠标位置
-float g_fXPositionInDC;      //鼠标按下时获取当前图片在DC中的位置 
-float g_fYPositionInDC;
-float g_fXoffset=0;            //鼠标拖动后X轴偏移量
-float g_fYoffset=0;            //鼠标拖动后Y轴偏移量
-int g_nwheelFlag=0;           //鼠标滚轮转动标志，0：未转动。 1：转动
-int g_nLButtonDownFlag=0;     //鼠标左键按下标志位
-int g_nMouseMoveFlag=0;       //鼠标拖动标志位
+
 
 
 Ctask1View::Ctask1View()
 {
 	// TODO: 在此处添加构造代码
+	m_fZScaling=1;         //记录鼠标滚轮
+	m_ptMousePoint=(0,0);       //记录鼠标位置
+	m_fXPositionInDC=0;      //鼠标按下时获取当前图片在DC中的位置 
+	m_fYPositionInDC=0;
+	m_fXoffset=0;            //鼠标拖动后X轴偏移量
+	m_fYoffset=0;            //鼠标拖动后Y轴偏移量
+	m_nwheelFlag=0;           //鼠标滚轮转动标志，0：未转动。 1：转动
+	m_nLButtonDownFlag=0;     //鼠标左键按下标志位
+    m_nMouseMoveFlag=0;       //鼠标拖动标志位
+	
 
 }
 
 Ctask1View::~Ctask1View()
 {
+	m_cbmp.ReleaseBmp();
 }
 
 BOOL Ctask1View::PreCreateWindow(CREATESTRUCT& cs)
@@ -83,12 +86,12 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 	cBrush.CreateSolidBrush(RGB(255,255,255));
 	pDc->FillRect(rect,&cBrush);
 	
-	if (!g_nwheelFlag&&!g_nMouseMoveFlag)               //鼠标滚轮未转动实现等比显示
+	if (!m_nwheelFlag&&!m_nMouseMoveFlag)               //鼠标滚轮未转动实现等比显示
 	{
 		CRect m_rc;
 		CRect m_PicRc;             //图片等比缩放区域
 		GetClientRect(&m_rc);
-		float m_fRate=float(g_cbmp.m_bmpInfoHeader.biWidth)/float(g_cbmp.m_bmpInfoHeader.biHeight);
+		float m_fRate=float(m_cbmp.m_bmpInfoHeader.biWidth)/float(m_cbmp.m_bmpInfoHeader.biHeight);
 		
 		float m_fRcRate=float(m_rc.Width())/float(m_rc.Height());
 
@@ -96,25 +99,25 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 		if (m_fRate>=m_fRcRate)
 		{
 
-			g_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, m_rc.Width(),int(m_rc.Width()/m_fRate));
-			g_fZScaling=float(m_rc.Width())/g_cbmp.m_bmpInfoHeader.biWidth;
+			m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, m_rc.Width(),int(m_rc.Width()/m_fRate));
+			m_fZScaling=float(m_rc.Width())/m_cbmp.m_bmpInfoHeader.biWidth;
 		}
 		if (m_fRate<m_fRcRate)
 		{
 
-			g_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC,int(m_rc.Height()*m_fRate),m_rc.Height());
-			g_fZScaling=float(m_rc.Height())/g_cbmp.m_bmpInfoHeader.biHeight;
+			m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC,int(m_rc.Height()*m_fRate),m_rc.Height());
+			m_fZScaling=float(m_rc.Height())/m_cbmp.m_bmpInfoHeader.biHeight;
 		}
 	}
-	else  if(g_nwheelFlag==1)                         //鼠标滚轮转动实现放大缩小
+	else  if(m_nwheelFlag==1)                         //鼠标滚轮转动实现放大缩小
 	{
-		 g_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, 
-			               int(g_cbmp.m_bmpInfoHeader.biWidth*g_fZScaling),
-			               int(g_cbmp.m_bmpInfoHeader.biHeight*g_fZScaling)
+		 m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, 
+			               int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
+			               int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling)
 						   );
-		 g_nwheelFlag=0;
+		 m_nwheelFlag=0;
 	}
-	if (g_nMouseMoveFlag==1)
+	if (m_nMouseMoveFlag==1)
 	{
 		int m_nXPosition;    //起始点X轴坐标                                                        
 		int m_nYPosition;    //起始点Y轴坐标
@@ -122,19 +125,19 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 		CRect m_rc;
 		GetClientRect(&m_rc);
 
-		m_nXPosition=g_fXPositionInDC+g_fXoffset;
-		m_nYPosition=g_fYPositionInDC+g_fYoffset;
+		m_nXPosition=m_fXPositionInDC+m_fXoffset;
+		m_nYPosition=m_fYPositionInDC+m_fYoffset;
 
-		g_cbmp.Draw(pDc->m_hDC,
+		m_cbmp.Draw(pDc->m_hDC,
 			        m_nXPosition,
 					m_nYPosition,
-			        int(g_cbmp.m_bmpInfoHeader.biWidth*g_fZScaling), 
-					int(g_cbmp.m_bmpInfoHeader.biHeight*g_fZScaling)
+			        int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling), 
+					int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling)
 					);
-		g_nMouseMoveFlag=0;
+		m_nMouseMoveFlag=0;
 	}
 
-	
+
 
 
 	// TODO: 在此处为本机数据添加绘制代码
@@ -190,17 +193,17 @@ void Ctask1View::OnFileOpen()
 	// TODO: 在此添加命令处理程序代码
 	
 	HRESULT m_hResult;
-	m_lpbImageDataSrc.Destroy();
+	//m_lpbImageDataSrc.Destroy();
 	CFileDialog m_dlg(0,0,0,0,0,NULL);
 	if (m_dlg.DoModal()==IDOK)
 	{
 		CString m_str=m_dlg.GetPathName();
 	
-		if (!g_cbmp.IsNull())
+		if (!m_cbmp.IsNull())
 		{
-			g_cbmp.ReleaseBmp();
+			m_cbmp.ReleaseBmp();
 		}
-		g_cbmp.LoadBmp(m_str);
+		m_cbmp.LoadBmp(m_str);
 	
 	}
 	Invalidate(false); 
@@ -217,7 +220,7 @@ void Ctask1View::OnFileSave()
 	if(m_dlg.DoModal()==IDOK)
 	{
 		CString m_str=m_dlg.GetPathName();
-		g_cbmp.SaveBmp(m_str);
+		m_cbmp.SaveBmp(m_str);
 
 	}
 	
@@ -228,17 +231,17 @@ BOOL Ctask1View::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
-	 g_nwheelFlag=1;
+	 m_nwheelFlag=1;
 	 
-	 g_fZScaling+= 0.05*(zDelta/120); 
+	 m_fZScaling+= 0.05*(zDelta/120); 
 
-	 if (g_fZScaling>=2)
+	 if (m_fZScaling>=2)
 	 {
-		 g_fZScaling=2;
+		 m_fZScaling=2;
 	 }
-	 if (g_fZScaling<=0.1)
+	 if (m_fZScaling<=0.1)
 	 {
-		 g_fZScaling=0.1;
+		 m_fZScaling=0.1;
 	 }
 
 
@@ -261,8 +264,8 @@ void Ctask1View::OnOriginSize()
 {
 	// TODO: 在此添加命令处理程序代码
 	CClientDC dc(this);
-	g_cbmp.DrawCenter(this->m_hWnd,dc.m_hDC,g_cbmp.m_bmpInfoHeader.biWidth, g_cbmp.m_bmpInfoHeader.biHeight);
-	g_fZScaling=1;
+	m_cbmp.DrawCenter(this->m_hWnd,dc.m_hDC,m_cbmp.m_bmpInfoHeader.biWidth, m_cbmp.m_bmpInfoHeader.biHeight);
+	m_fZScaling=1;
 }
 
 
@@ -283,11 +286,11 @@ int Ctask1View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void Ctask1View::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (g_nLButtonDownFlag==1)
+	if (m_nLButtonDownFlag==1)
 	{
-		g_fXoffset=point.x-g_ptMousePoint.x;
-		g_fYoffset=point.y-g_ptMousePoint.y;
-		g_nMouseMoveFlag=1;
+		m_fXoffset=point.x-m_ptMousePoint.x;
+		m_fYoffset=point.y-m_ptMousePoint.y;
+		m_nMouseMoveFlag=1;
 		Invalidate(false);
 	}
 	CView::OnMouseMove(nFlags, point);
@@ -297,7 +300,7 @@ void Ctask1View::OnMouseMove(UINT nFlags, CPoint point)
 void Ctask1View::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	g_nLButtonDownFlag=0;
+	m_nLButtonDownFlag=0;
 	CView::OnLButtonUp(nFlags, point);
 }
 
@@ -305,10 +308,10 @@ void Ctask1View::OnLButtonUp(UINT nFlags, CPoint point)
 void Ctask1View::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	g_nLButtonDownFlag=1;
-	g_ptMousePoint=point;
-	g_fXPositionInDC=g_cbmp.get_m_fXPositionInDC();
-	g_fYPositionInDC=g_cbmp.get_m_fYPositionInDC();
+	m_nLButtonDownFlag=1;
+	m_ptMousePoint=point;
+	m_fXPositionInDC=m_cbmp.get_m_fXPositionInDC();
+	m_fYPositionInDC=m_cbmp.get_m_fYPositionInDC();
 	CView::OnLButtonDown(nFlags, point);
 }
 
@@ -319,4 +322,15 @@ BOOL Ctask1View::OnEraseBkgnd(CDC* pDC)
 
 	return CView::OnEraseBkgnd(pDC);
 	//return TRUE;
+}
+
+
+void Ctask1View::OnClose()
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (!m_cbmp.IsNull())
+	{
+		m_cbmp.ReleaseBmp();
+	}
+	CView::OnClose();
 }
