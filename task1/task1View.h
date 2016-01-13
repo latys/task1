@@ -29,6 +29,7 @@ public:
 	int m_nwheelFlag;           //鼠标滚轮转动标志，0：未转动。 1：转动
 	int m_nLButtonDownFlag;     //鼠标左键按下标志位
 	int m_nMouseMoveFlag;       //鼠标拖动标志位
+	int m_nLButtonUpFlag;        //鼠标左键松开标志位
 	
 		 
 // 重写
