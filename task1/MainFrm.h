@@ -45,6 +45,11 @@ protected:
 
 public:
 	afx_msg void OnClose();
+	afx_msg void OnAdaptscreen();
+	afx_msg void OnOriginsize();
+	afx_msg void OnFileOpen();
+	afx_msg void OnFileSave();
+	
 };
 
 

@@ -4,7 +4,7 @@
 
 
 #pragma once
-
+#include "Bmp.h"
 
 class Ctask1Doc : public CDocument
 {
@@ -14,7 +14,17 @@ protected: // 仅从序列化创建
 
 // 特性
 public:
-
+	CBmp m_cbmp;
+	float m_fZScaling;         //记录鼠标滚轮
+	CPoint m_ptMousePoint;       //记录鼠标位置
+	float m_fXPositionInDC;      //鼠标按下时获取当前图片在DC中的位置 
+	float m_fYPositionInDC;
+	float m_fXoffset;            //鼠标拖动后X轴偏移量
+	float m_fYoffset;            //鼠标拖动后Y轴偏移量
+	int m_nwheelFlag;           //鼠标滚轮转动标志，0：未转动。 1：转动
+	int m_nLButtonDownFlag;     //鼠标左键按下标志位
+	int m_nMouseMoveFlag;       //鼠标拖动标志位
+	int m_nLButtonUpFlag;        //鼠标左键松开标志位
 // 操作
 public:
 

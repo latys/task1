@@ -19,17 +19,9 @@ public:
 	
 // 操作
 public:
-	CBmp m_cbmp;
-	float m_fZScaling;         //记录鼠标滚轮
-	CPoint m_ptMousePoint;       //记录鼠标位置
-	float m_fXPositionInDC;      //鼠标按下时获取当前图片在DC中的位置 
-	float m_fYPositionInDC;
-	float m_fXoffset;            //鼠标拖动后X轴偏移量
-	float m_fYoffset;            //鼠标拖动后Y轴偏移量
-	int m_nwheelFlag;           //鼠标滚轮转动标志，0：未转动。 1：转动
-	int m_nLButtonDownFlag;     //鼠标左键按下标志位
-	int m_nMouseMoveFlag;       //鼠标拖动标志位
-	int m_nLButtonUpFlag;        //鼠标左键松开标志位
+	
+	
+
 	
 		 
 // 重写
@@ -55,17 +47,16 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnFileOpen();
-	afx_msg void OnFileSave();
-	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	afx_msg void OnAdaptScreen();
-	afx_msg void OnOriginSize();
+
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnClose();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 };
 
 #ifndef _DEBUG  // task1View.cpp 中的调试版本

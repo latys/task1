@@ -7,6 +7,7 @@
 
 #include "MainFrm.h"
 #include "task1View.h"
+#include "Bmp.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -25,6 +26,11 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_COMMAND(ID_VIEW_CUSTOMIZE, &CMainFrame::OnViewCustomize)
 	ON_REGISTERED_MESSAGE(AFX_WM_CREATETOOLBAR, &CMainFrame::OnToolbarCreateNew)
 	ON_WM_CLOSE()
+	ON_COMMAND(ID_ADAPTSCREEN, &CMainFrame::OnAdaptscreen)
+	ON_COMMAND(ID_ORIGINSIZE, &CMainFrame::OnOriginsize)
+	ON_COMMAND(ID_FILE_OPEN, &CMainFrame::OnFileOpen)
+	ON_COMMAND(ID_FILE_SAVE, &CMainFrame::OnFileSave)
+
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -230,9 +236,74 @@ BOOL CMainFrame::LoadFrame(UINT nIDResource, DWORD dwDefaultStyle, CWnd* pParent
 void CMainFrame::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	Ctask1View *task1view=(Ctask1View *)this->GetActiveView();
+	
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetActiveView()->GetDocument());
 
-	task1view->m_cbmp.ReleaseBmp();
+	pDoc->m_cbmp.ReleaseBmp();
 
 	CFrameWndEx::OnClose();
 }
+
+
+void CMainFrame::OnAdaptscreen()
+{
+	// TODO: 在此添加命令处理程序代码
+	//Invalidate(FALSE);
+	GetActiveView()->Invalidate(FALSE);
+}
+
+
+void CMainFrame::OnOriginsize()
+{
+	// TODO: 在此添加命令处理程序代码
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetActiveView()->GetDocument());
+	CClientDC dc(this->GetActiveView());
+	pDoc->m_cbmp.DrawCenter(this->m_hWnd,dc.m_hDC,
+		                    pDoc->m_cbmp.m_bmpInfoHeader.biWidth, 
+							pDoc->m_cbmp.m_bmpInfoHeader.biHeight);
+	pDoc->m_fZScaling=1;
+}
+
+
+
+void CMainFrame::OnFileOpen()
+{
+	// TODO: 在此添加命令处理程序代码
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetActiveView()->GetDocument());
+	HRESULT m_hResult;
+	//m_lpbImageDataSrc.Destroy();
+	CFileDialog m_dlg(0,0,0,0,0,NULL);
+	if (m_dlg.DoModal()==IDOK)
+	{
+		CString m_str=m_dlg.GetPathName();
+
+		if (!pDoc->m_cbmp.IsNull())
+		{
+			pDoc->m_cbmp.ReleaseBmp();
+		}
+		pDoc->m_cbmp.LoadBmp(m_str);
+
+	}
+
+	GetActiveView()->Invalidate();
+}
+
+
+void CMainFrame::OnFileSave()
+{
+	// TODO: 在此添加命令处理程序代码
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetActiveView()->GetDocument());
+	CString m_filter="*.jpg|*.png|*.bmp";
+	CFileDialog m_dlg(0,0,0,0,m_filter,0);
+	if(m_dlg.DoModal()==IDOK)
+	{
+		CString m_str=m_dlg.GetPathName();
+		pDoc->m_cbmp.SaveBmp(m_str);
+
+	}
+}
+
+
+
+
+

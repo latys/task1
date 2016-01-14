@@ -30,11 +30,22 @@ END_MESSAGE_MAP()
 Ctask1Doc::Ctask1Doc()
 {
 	// TODO: 在此添加一次性构造代码
+	m_fZScaling=1;         //记录鼠标滚轮
+	m_ptMousePoint=(0,0);       //记录鼠标位置
+	m_fXPositionInDC=0;      //鼠标按下时获取当前图片在DC中的位置 
+	m_fYPositionInDC=0;
+	m_fXoffset=0;            //鼠标拖动后X轴偏移量
+	m_fYoffset=0;            //鼠标拖动后Y轴偏移量
+	m_nwheelFlag=0;           //鼠标滚轮转动标志，0：未转动。 1：转动
+	m_nLButtonDownFlag=0;     //鼠标左键按下标志位
+	m_nMouseMoveFlag=0;       //鼠标拖动标志位
+	m_nLButtonUpFlag=0;       //鼠标左键松开标志位
 
 }
 
 Ctask1Doc::~Ctask1Doc()
 {
+	m_cbmp.ReleaseBmp();
 }
 
 BOOL Ctask1Doc::OnNewDocument()

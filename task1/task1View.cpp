@@ -26,17 +26,16 @@ IMPLEMENT_DYNCREATE(Ctask1View, CView)
 BEGIN_MESSAGE_MAP(Ctask1View, CView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
-	ON_COMMAND(ID_FILE_OPEN, &Ctask1View::OnFileOpen)
-	ON_COMMAND(ID_FILE_SAVE, &Ctask1View::OnFileSave)
-	ON_WM_MOUSEWHEEL()
-	ON_COMMAND(ID_ADAPTSCREEN, &Ctask1View::OnAdaptScreen)
-	ON_COMMAND(ID_ORIGINSIZE, &Ctask1View::OnOriginSize)
+
 	ON_WM_CREATE()
-	ON_WM_MOUSEMOVE()
-	ON_WM_LBUTTONUP()
-	ON_WM_LBUTTONDOWN()
+
 	ON_WM_ERASEBKGND()
 	ON_WM_CLOSE()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_MOUSEHWHEEL()
+	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 // Ctask1View 构造/析构
@@ -46,23 +45,15 @@ END_MESSAGE_MAP()
 Ctask1View::Ctask1View()
 {
 	// TODO: 在此处添加构造代码
-	m_fZScaling=1;         //记录鼠标滚轮
-	m_ptMousePoint=(0,0);       //记录鼠标位置
-	m_fXPositionInDC=0;      //鼠标按下时获取当前图片在DC中的位置 
-	m_fYPositionInDC=0;
-	m_fXoffset=0;            //鼠标拖动后X轴偏移量
-	m_fYoffset=0;            //鼠标拖动后Y轴偏移量
-	m_nwheelFlag=0;           //鼠标滚轮转动标志，0：未转动。 1：转动
-	m_nLButtonDownFlag=0;     //鼠标左键按下标志位
-    m_nMouseMoveFlag=0;       //鼠标拖动标志位
-	m_nLButtonUpFlag=0;       //鼠标左键松开标志位
+	
+
 	
 
 }
 
 Ctask1View::~Ctask1View()
 {
-	m_cbmp.ReleaseBmp();
+	//m_cbmp.ReleaseBmp();
 }
 
 BOOL Ctask1View::PreCreateWindow(CREATESTRUCT& cs)
@@ -88,11 +79,11 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 	cBrush.CreateSolidBrush(RGB(255,255,255));
 	//pDc->FillRect(rect,&cBrush);
 	
-	if (!m_nwheelFlag&&!m_nMouseMoveFlag)               //鼠标滚轮未转动实现等比显示
+	if (!pDoc->m_nwheelFlag&&!pDoc->m_nMouseMoveFlag)               //鼠标滚轮未转动实现等比显示
 	{
 		CRect m_rc;
 		GetClientRect(&m_rc);
-		float m_fRate=float(m_cbmp.m_bmpInfoHeader.biWidth)/float(m_cbmp.m_bmpInfoHeader.biHeight);
+		float m_fRate=float(pDoc->m_cbmp.m_bmpInfoHeader.biWidth)/float(pDoc->m_cbmp.m_bmpInfoHeader.biHeight);
 		
 		float m_fRcRate=float(m_rc.Width())/float(m_rc.Height());
 
@@ -100,66 +91,68 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 		if (m_fRate>=m_fRcRate)                       //判断图像长宽比与窗口长宽比，图片宽度与窗口宽度一样
 		{
 
-			m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, m_rc.Width(),int(m_rc.Width()/m_fRate));
+			pDoc->m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, m_rc.Width(),int(m_rc.Width()/m_fRate));
 			
 			//刷新窗口，清除图片上方和下方区域
-			CRect m_rcFresh(0,0,m_rc.Width(),(int)m_cbmp.get_m_fYPositionInDC());
+			CRect m_rcFresh(0,0,m_rc.Width(),(int)pDoc->m_cbmp.get_m_fYPositionInDC());
 			//m_rcFresh.SubtractRect(m_rc,m_PicRc);
 			pDc->FillRect(m_rcFresh,&cBrush);
-			CRect m_rcFresh1(0,(int)m_cbmp.get_m_fYPositionInDC()+int(m_rc.Width()/m_fRate),m_rc.Width(),m_rc.Height());
+			CRect m_rcFresh1(0,(int)pDoc->m_cbmp.get_m_fYPositionInDC()+int(m_rc.Width()/m_fRate),m_rc.Width(),m_rc.Height());
 			//m_rcFresh.SubtractRect(m_rc,m_PicRc);
 			pDc->FillRect(m_rcFresh1,&cBrush);
 
-			m_fZScaling=float(m_rc.Width())/m_cbmp.m_bmpInfoHeader.biWidth;
+			pDoc->m_fZScaling=float(m_rc.Width())/pDoc->m_cbmp.m_bmpInfoHeader.biWidth;
 		}
 		if (m_fRate<m_fRcRate)                        //图片高度与窗口高度一致
 		{
 
-			m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC,int(m_rc.Height()*m_fRate),m_rc.Height());
+			pDoc->m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC,int(m_rc.Height()*m_fRate),m_rc.Height());
 			//刷新窗口，清除图片左边与右边区域
-			CRect m_rcFresh(0,0,(int)m_cbmp.get_m_fXPositionInDC(),m_rc.Height());
+			CRect m_rcFresh(0,0,(int)pDoc->m_cbmp.get_m_fXPositionInDC(),m_rc.Height());
 			
 			pDc->FillRect(m_rcFresh,&cBrush);
 
-			CRect m_rcFresh1((int)m_cbmp.get_m_fXPositionInDC()+int(m_rc.Height()*m_fRate),0,m_rc.Width(),m_rc.Height());
+			CRect m_rcFresh1((int)pDoc->m_cbmp.get_m_fXPositionInDC()+int(m_rc.Height()*m_fRate),0,m_rc.Width(),m_rc.Height());
 
 			pDc->FillRect(m_rcFresh1,&cBrush);
 
-			m_fZScaling=float(m_rc.Height())/m_cbmp.m_bmpInfoHeader.biHeight;
+			pDoc->m_fZScaling=float(m_rc.Height())/pDoc->m_cbmp.m_bmpInfoHeader.biHeight;
 		}
 	}
-	else  if(m_nwheelFlag==1)                         //鼠标滚轮转动实现放大缩小
+	else  if(pDoc->m_nwheelFlag==1)                         //鼠标滚轮转动实现放大缩小
 	{
 		int m_nXPosition;    //起始点X轴坐标                                                        
 		int m_nYPosition;    //起始点Y轴坐标
 		CRect m_rc;
 		GetClientRect(&m_rc);
 		
-		m_nXPosition=(m_rc.Width()-int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling))/2;
-		m_nYPosition=(m_rc.Height()-int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling))/2;
+		m_nXPosition=(m_rc.Width()-int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling))/2;
+		m_nYPosition=(m_rc.Height()-int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling))/2;
 
 		if (m_nXPosition>0)                              //图片起始点横坐标在窗口内，清除图片左右边区域
 		{
 			CRect m_rcLeft(0,0,m_nXPosition,m_rc.Height());
 			pDc->FillRect(&m_rcLeft,&cBrush);
-			CRect m_rcRight(m_nXPosition+(int)(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),0,m_rc.Width(),m_rc.Height());
+			CRect m_rcRight(m_nXPosition+(int)(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
+				            0,m_rc.Width(),m_rc.Height());
 			pDc->FillRect(&m_rcRight,&cBrush);
 		}
 		if (m_nYPosition>0)                             //图片起始点纵坐标在窗口内，清除图片上下方区域
 		{
 			CRect m_rcTop(0,0,m_rc.Width(),m_nYPosition);
 			pDc->FillRect(&m_rcTop,&cBrush);
-			CRect m_rcBottom(0,m_nYPosition+(int)(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling),m_rc.Width(),m_rc.Height());
+			CRect m_rcBottom(0,m_nYPosition+(int)(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling),
+				             m_rc.Width(),m_rc.Height());
 			pDc->FillRect(&m_rcBottom,&cBrush);
 		}
 
-		 m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, 
-			               int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
-			               int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling)
+		 pDoc->m_cbmp.DrawCenter(this->m_hWnd, pDc->m_hDC, 
+			               int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
+			               int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling)
 						   );
-		 m_nwheelFlag=0;
+		 pDoc->m_nwheelFlag=0;
 	}
-	if (m_nMouseMoveFlag==1)                     //实现鼠标拖动
+	if (pDoc->m_nMouseMoveFlag==1)                     //实现鼠标拖动
 	{
 		int m_nXPosition;    //起始点X轴坐标                                                        
 		int m_nYPosition;    //起始点Y轴坐标
@@ -167,62 +160,62 @@ void Ctask1View::OnDraw(CDC* pDc/*pDC*/)
 		CRect m_rc;
 		GetClientRect(&m_rc);
 
-		m_nXPosition=m_fXPositionInDC+m_fXoffset;
-		m_nYPosition=m_fYPositionInDC+m_fYoffset;
+		m_nXPosition=pDoc->m_fXPositionInDC+pDoc->m_fXoffset;
+		m_nYPosition=pDoc->m_fYPositionInDC+pDoc->m_fYoffset;
 
 
 
-		if (m_nXPosition>m_cbmp.get_m_fXPositionInDC())                       //向右移动则清除左边区域
+		if (m_nXPosition>pDoc->m_cbmp.get_m_fXPositionInDC())                       //向右移动则清除左边区域
 		{
-			CRect m_rcRefresh((int)m_cbmp.get_m_fXPositionInDC(),
-				(int)m_cbmp.get_m_fYPositionInDC(),
+			CRect m_rcRefresh((int)pDoc->m_cbmp.get_m_fXPositionInDC(),
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC(),
 				m_nXPosition,
-				(int)m_cbmp.get_m_fYPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling));
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling));
 		
 			pDc->FillRect(&m_rcRefresh,&cBrush);
 		}
-		if (m_nXPosition<m_cbmp.get_m_fXPositionInDC())                        //向左移动则清除右边区域
+		if (m_nXPosition<pDoc->m_cbmp.get_m_fXPositionInDC())                        //向左移动则清除右边区域
 		{
-			CRect m_rcRefresh(m_nXPosition+int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
-				(int)m_cbmp.get_m_fYPositionInDC(),
-				(int)m_cbmp.get_m_fXPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
-				(int)m_cbmp.get_m_fYPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling));
+			CRect m_rcRefresh(m_nXPosition+int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC(),
+				(int)pDoc->m_cbmp.get_m_fXPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling));
 
 			pDc->FillRect(&m_rcRefresh,&cBrush);
 			
 		}
-		if (m_nYPosition>m_cbmp.get_m_fYPositionInDC())                      //向下移动则清除上边区域
+		if (m_nYPosition>pDoc->m_cbmp.get_m_fYPositionInDC())                      //向下移动则清除上边区域
 		{
 
-			CRect m_rcRefresh((int)m_cbmp.get_m_fXPositionInDC(),
-				(int)m_cbmp.get_m_fYPositionInDC(),
-				(int)m_cbmp.get_m_fXPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
+			CRect m_rcRefresh((int)pDoc->m_cbmp.get_m_fXPositionInDC(),
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC(),
+				(int)pDoc->m_cbmp.get_m_fXPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
 				m_nYPosition);
 
 			pDc->FillRect(&m_rcRefresh,&cBrush);
 
 		}
-		if (m_nYPosition<m_cbmp.get_m_fYPositionInDC())                       //向上移动则清除下边区域
+		if (m_nYPosition<pDoc->m_cbmp.get_m_fYPositionInDC())                       //向上移动则清除下边区域
 		{
 
-			CRect m_rcRefresh((int)m_cbmp.get_m_fXPositionInDC(),
-				m_nYPosition+int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling),
-				(int)m_cbmp.get_m_fXPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling),
-				(int)m_cbmp.get_m_fYPositionInDC()+int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling));
+			CRect m_rcRefresh((int)pDoc->m_cbmp.get_m_fXPositionInDC(),
+				m_nYPosition+int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling),
+				(int)pDoc->m_cbmp.get_m_fXPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling),
+				(int)pDoc->m_cbmp.get_m_fYPositionInDC()+int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling));
 
 			pDc->FillRect(&m_rcRefresh,&cBrush);
 
 		}
 	
 		
-		m_cbmp.Draw(pDc->m_hDC,
+		pDoc->m_cbmp.Draw(pDc->m_hDC,
 			m_nXPosition,
 			m_nYPosition,
-			int(m_cbmp.m_bmpInfoHeader.biWidth*m_fZScaling), 
-			int(m_cbmp.m_bmpInfoHeader.biHeight*m_fZScaling)
+			int(pDoc->m_cbmp.m_bmpInfoHeader.biWidth*pDoc->m_fZScaling), 
+			int(pDoc->m_cbmp.m_bmpInfoHeader.biHeight*pDoc->m_fZScaling)
 			);
 
-		m_nMouseMoveFlag=0;
+		pDoc->m_nMouseMoveFlag=0;
 	}
 
 	
@@ -278,86 +271,15 @@ Ctask1Doc* Ctask1View::GetDocument() const // 非调试版本是内联的
 // Ctask1View 消息处理程序
 
 
-void Ctask1View::OnFileOpen()
-{
-	// TODO: 在此添加命令处理程序代码
-	
-	HRESULT m_hResult;
-	//m_lpbImageDataSrc.Destroy();
-	CFileDialog m_dlg(0,0,0,0,0,NULL);
-	if (m_dlg.DoModal()==IDOK)
-	{
-		CString m_str=m_dlg.GetPathName();
-	
-		if (!m_cbmp.IsNull())
-		{
-			m_cbmp.ReleaseBmp();
-		}
-		m_cbmp.LoadBmp(m_str);
-	
-	}
-	Invalidate(false); 
-
-	
-}
 
 
-void Ctask1View::OnFileSave()
-{
-	// TODO: 在此添加命令处理程序代码
-	CString m_filter="*.jpg|*.png|*.bmp";
-	CFileDialog m_dlg(0,0,0,0,m_filter,0);
-	if(m_dlg.DoModal()==IDOK)
-	{
-		CString m_str=m_dlg.GetPathName();
-		m_cbmp.SaveBmp(m_str);
-
-	}
-	
-}
 
 
-BOOL Ctask1View::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-
-	 m_nwheelFlag=1;
-	 
-	 m_fZScaling+= 0.05*(zDelta/120); 
-
-	 if (m_fZScaling>=2)
-	 {
-		 m_fZScaling=2;
-	 }
-	 if (m_fZScaling<=0.1)
-	 {
-		 m_fZScaling=0.1;
-	 }
 
 
-	 
-	 
-	Invalidate(FALSE);
-	 
-	 return CView::OnMouseWheel(nFlags, zDelta, pt);
-}
 
 
-void Ctask1View::OnAdaptScreen()
-{
-	// TODO: 在此添加命令处理程序代码
-	
-	Invalidate(FALSE);
-}
 
-
-void Ctask1View::OnOriginSize()
-{
-	// TODO: 在此添加命令处理程序代码
-	CClientDC dc(this);
-	m_cbmp.DrawCenter(this->m_hWnd,dc.m_hDC,m_cbmp.m_bmpInfoHeader.biWidth, m_cbmp.m_bmpInfoHeader.biHeight);
-	m_fZScaling=1;
-}
 
 
 int Ctask1View::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -374,41 +296,7 @@ int Ctask1View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 
-void Ctask1View::OnMouseMove(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (m_nLButtonDownFlag==1)
-	{
-		m_fXoffset=point.x-m_ptMousePoint.x;
-		m_fYoffset=point.y-m_ptMousePoint.y;
-		m_nMouseMoveFlag=1;
-		Invalidate(false);
-		UpdateWindow();
-	}
-	CView::OnMouseMove(nFlags, point);
-}
 
-
-void Ctask1View::OnLButtonUp(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	m_nLButtonDownFlag=0;
-	m_nLButtonUpFlag=1;
-	
-	CView::OnLButtonUp(nFlags, point);
-}
-
-
-void Ctask1View::OnLButtonDown(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	m_nLButtonDownFlag=1;
-	m_ptMousePoint=point;
-	m_fXPositionInDC=m_cbmp.get_m_fXPositionInDC();
-	m_fYPositionInDC=m_cbmp.get_m_fYPositionInDC();
-	
-	CView::OnLButtonDown(nFlags, point);
-}
 
 
 BOOL Ctask1View::OnEraseBkgnd(CDC* pDC)
@@ -423,9 +311,82 @@ BOOL Ctask1View::OnEraseBkgnd(CDC* pDC)
 void Ctask1View::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (!m_cbmp.IsNull())
-	{
-		m_cbmp.ReleaseBmp();
-	}
+
+	
 	CView::OnClose();
+}
+
+
+void Ctask1View::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetDocument());
+	pDoc->m_nLButtonDownFlag=1;
+	pDoc->m_ptMousePoint=point;
+	pDoc->m_fXPositionInDC=pDoc->m_cbmp.get_m_fXPositionInDC();
+	pDoc->m_fYPositionInDC=pDoc->m_cbmp.get_m_fYPositionInDC();
+
+	CView::OnLButtonDown(nFlags, point);
+}
+
+
+void Ctask1View::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetDocument());
+	pDoc->m_nLButtonDownFlag=0;
+	pDoc->m_nLButtonUpFlag=1;
+	CView::OnLButtonUp(nFlags, point);
+}
+
+
+void Ctask1View::OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// 此功能要求 Windows Vista 或更高版本。
+	// _WIN32_WINNT 符号必须 >= 0x0600。
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+
+	CView::OnMouseHWheel(nFlags, zDelta, pt);
+}
+
+
+void Ctask1View::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetDocument());
+	if (pDoc->m_nLButtonDownFlag==1)
+	{
+		pDoc->m_fXoffset=point.x-pDoc->m_ptMousePoint.x;
+		pDoc->m_fYoffset=point.y-pDoc->m_ptMousePoint.y;
+		pDoc->m_nMouseMoveFlag=1;
+		Invalidate(false);
+		UpdateWindow();
+	}
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+BOOL Ctask1View::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	Ctask1Doc *pDoc=(Ctask1Doc *)(GetDocument());
+
+	pDoc->m_nwheelFlag=1;
+
+	pDoc->m_fZScaling+= 0.05*(zDelta/120); 
+
+	if (pDoc->m_fZScaling>=2)
+	{
+		pDoc->m_fZScaling=2;
+	}
+	if (pDoc->m_fZScaling<=0.1)
+	{
+		pDoc->m_fZScaling=0.1;
+	}
+
+	Invalidate();
+	UpdateWindow();
+
+	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
