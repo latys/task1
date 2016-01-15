@@ -84,6 +84,7 @@ void CBmp::LoadBmp(CString m_strFileName)
 	int dstBmpSizeImage=((((this->m_bmpInfoHeader.biWidth*this->m_bmpInfoHeader.biBitCount)
 		                 +31)&~31)/8)*this->m_bmpInfoHeader.biHeight;                                 //Í¼ÏñÏñËØ´óÐ¡
 
+	this->m_bmpInfoHeader.biSizeImage=dstBmpSizeImage;
 	if(this->m_bmpInfoHeader.biBitCount!=8&&this->m_bmpInfoHeader.biBitCount!=24)
 	{
 
